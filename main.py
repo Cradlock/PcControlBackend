@@ -89,7 +89,7 @@ async def login(res : Response,post_data : user_data,session: Session = Depends(
 
 
 @app.post("/register")
-async def register(res : Response,data : RegisterData):
+async def register(res : Response,data : RegisterData,session: Session = Depends(get_session)):
    username = data.username
    password = data.password
    secret_key = data.secret_key
