@@ -174,9 +174,12 @@ async def sendFile(session_id : str = Cookie(None),file : UploadFile = File(...)
 
 if __name__ == "__main__":
     try:
-        session = get_session()
-        session.execute(text("SELECT 1"))
-        import uvicorn
-        uvicorn.run(app=app,host="127.0.0.1",port=8000)
+         session = get_session()
+         session.execute(text("SELECT 1"))
+         print(session)
+         if session is None:
+           print("ERROR with db")
+         else:
+           print("DB Connected ")
     except Exception as e:
        print(f"Error {e}")
