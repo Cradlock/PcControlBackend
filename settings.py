@@ -6,8 +6,7 @@ config = configparser.ConfigParser()
 config.read("conf.conf")
 
 
-web_site_host = config["site"]["HOST"]
-web_site_port = config["site"]["PORT"]
+
 
 
 

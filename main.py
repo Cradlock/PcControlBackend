@@ -168,6 +168,6 @@ if __name__ == "__main__":
         session = get_session()
         session.execute(text("SELECT 1"))
         import uvicorn
-        uvicorn.run(app=app,port=int(settings.web_site_port),host=settings.web_site_host)
+        uvicorn.run(app=app,host="0.0.0.0",port=8000)
     except Exception as e:
        print(f"Error {e}")
