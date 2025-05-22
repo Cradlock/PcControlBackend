@@ -1,5 +1,5 @@
 from fastapi import FastAPI,WebSocket,WebSocketDisconnect,Response,Cookie,Form,File,UploadFile
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse,HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List
 import settings
@@ -32,8 +32,10 @@ Secret_key = "SKY"
 
 @app.get("/")
 def main():
-    return {"Data": list(connected_pc.keys())}
-
+   text = ""
+   with open("index.html","r") as f:
+      text = f.read()
+   return HTMLResponse(content=text,status_code=200)
 
 
 @app.websocket("/openC")
@@ -168,6 +170,6 @@ if __name__ == "__main__":
         session = get_session()
         session.execute(text("SELECT 1"))
         import uvicorn
-        uvicorn.run(app=app,host="0.0.0.0",port=8000)
+        uvicorn.run(app=app,host="127.0.0.1",port=8000)
     except Exception as e:
        print(f"Error {e}")
