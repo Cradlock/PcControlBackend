@@ -59,6 +59,13 @@ async def chat_pces(websocket: WebSocket):
        print("Client disconnect")
 
 
+@app.get("/list_connected_pc")
+async def connected_pc(session_id : str = Cookie(None)):
+   if sessions.get(session_id) is None:
+      return JSONResponse(content="Error",status_code=403)
+   
+   return JSONResponse(content={"connected_pc":list(connected_pc.keys())})
+
 
 @app.post("/login")
 async def login(res : Response,post_data : user_data):
