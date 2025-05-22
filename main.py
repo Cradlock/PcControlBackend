@@ -1,4 +1,4 @@
-from fastapi import FastAPI,WebSocket,WebSocketDisconnect,Response,Cookie,Form,File,UploadFile
+from fastapi import FastAPI,WebSocket,WebSocketDisconnect,Response,Cookie,Form,File,UploadFile,Depends
 from fastapi.responses import JSONResponse,HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List
