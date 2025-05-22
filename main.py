@@ -99,7 +99,7 @@ async def register(res : Response,data : RegisterData,session: Session = Depends
    
    token = generate_key()
 
-   user_old = session.query(User).filter(username=username).first()
+   user_old = session.query(User).filter(User.username==username).first()
    if user_old is not None:
       return JSONResponse(content={"msg":"This user has in db"},status_code=409)
 
