@@ -14,6 +14,8 @@ import psycopg2.errors as db_error
 
 app = FastAPI()
 
+session : Session 
+
 app.add_middleware(
    CORSMiddleware,
    allow_origins=["*"],
@@ -68,7 +70,7 @@ async def connected_pc(session_id : str = Cookie(None)):
 
 
 @app.post("/login")
-async def login(res : Response,post_data : user_data):
+async def login(res : Response,post_data : user_data,session: Session = Depends(get_session)):
    username = post_data.username
    password = post_data.password
 
@@ -170,7 +172,12 @@ async def sendFile(session_id : str = Cookie(None),file : UploadFile = File(...)
    },status_code=200)
 
 
-
+def get_session():
+    db = session
+    try:
+        yield db
+    finally:
+        db.close()
 
 if __name__ == "__main__":
     try:

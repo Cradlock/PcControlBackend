@@ -1,25 +1,28 @@
 from sqlalchemy import Column,String,Integer,create_engine,Text,text
-from sqlalchemy.orm import create_session,declarative_base,Session
+from sqlalchemy.orm import create_session,declarative_base,Session,sessionmaker
 from utils import *
 import settings
 
 
-session : Session = None
 
 Base = declarative_base()
 
 
 
+SQLALCHEMY_DATABASE_URL = f"postgresql+psycopg2://{settings.USERNAME}:{settings.PASSWORD}@{settings.HOST}:{settings.PORT}/{settings.DMNAME}"
 
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+Base = declarative_base()
 
-def get_session():
-    engine = create_engine(f"postgresql+psycopg2://{settings.USERNAME}:{settings.PASSWORD}@{settings.HOST}:{settings.PORT}/{settings.DMNAME}")
-   
-    session = create_session(autocommit=False, autoflush=False,bind=engine)
-    return session
-
-
+# Dependency
+def get_session() -> Session:
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 class User(Base):
     __tablename__ = "users"
