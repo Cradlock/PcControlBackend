@@ -172,16 +172,11 @@ async def sendFile(session_id : str = Cookie(None),file : UploadFile = File(...)
    },status_code=200)
 
 
-def get_session():
-    db = session
-    try:
-        yield db
-    finally:
-        db.close()
+
 
 if __name__ == "__main__":
     try:
-         session = get_session()
+         session = next(get_session())
          session.execute(text("SELECT 1"))
          print(session)
          if session is None:
