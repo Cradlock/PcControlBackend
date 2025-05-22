@@ -112,7 +112,7 @@ async def register(res : Response,data : RegisterData,session: Session = Depends
    
    sessions[token] = user.id
 
-   return JSONResponse(content=user,status_code=200)
+   return JSONResponse(content={"username":user.username,"session":token},status_code=200)
 
    
 @app.post("/logout")
