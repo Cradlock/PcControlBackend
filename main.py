@@ -8,7 +8,7 @@ import base64
 from db import *
 from utils import *
 from schemas import *
-import psycopg2.errors as db_error
+import psycopg2
 
 
 
@@ -103,7 +103,7 @@ async def register(res : Response,data : RegisterData,session: Session = Depends
       user = User(username=username,password=hashed(password))
       session.add(user)
       session.commit()
-   except db_error.UniqueViolation as e:
+   except psycopg2.errors.UniqueViolation.UniqueViolation as e:
       return JSONResponse(content={"msg":"This user has in db"},status_code=409)
    except Exception as e:
       print(e)
