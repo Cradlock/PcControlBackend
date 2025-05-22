@@ -99,12 +99,15 @@ async def register(res : Response,data : RegisterData,session: Session = Depends
    
    token = generate_key()
 
+   user_old = session.query(User).filter(username=username).first()
+   if user_old is not None:
+      return JSONResponse(content={"msg":"This user has in db"},status_code=409)
+
+
    try:
       user = User(username=username,password=hashed(password))
       session.add(user)
       session.commit()
-   except psycopg2.errors.UniqueViolation.UniqueViolation as e:
-      return JSONResponse(content={"msg":"This user has in db"},status_code=409)
    except Exception as e:
       print(e)
       return JSONResponse(content={"msg":"Error in db"},status_code=500)
