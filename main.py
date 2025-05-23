@@ -86,7 +86,7 @@ async def login(res : Response,post_data : user_data,session: Session = Depends(
    res.set_cookie(key="token",value=token)
    return JSONResponse(content={
       "username":user.username,
-      "token":token
+      "token":str(token)
    },status_code=200)
 
 
