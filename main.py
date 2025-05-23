@@ -65,7 +65,7 @@ async def chat_pces(websocket: WebSocket):
 async def connected_pc(session_id : str = Cookie(None)):
 
    if sessions.get(session_id) is None:
-      return JSONResponse(content={"data":"error","list":list(session_id.keys())},status_code=403)
+      return JSONResponse(content={"data":"error","list":list(sessions.keys())},status_code=403)
    
    return JSONResponse(content={"connected_pc":list(connected_pc.keys())})
 
