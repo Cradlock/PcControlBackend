@@ -65,7 +65,7 @@ async def chat_pces(websocket: WebSocket):
 async def connected_pc(session_id : str = Cookie(None)):
 
    if sessions.get(session_id) is None:
-      return JSONResponse(content="Error",status_code=403)
+      return JSONResponse(content={"data":"error","list":list(session_id.keys())},status_code=403)
    
    return JSONResponse(content={"connected_pc":list(connected_pc.keys())})
 
@@ -173,8 +173,6 @@ async def sendFile(session_id : str = Cookie(None),file : UploadFile = File(...)
       "success":success,
       "failed":failed
    },status_code=200)
-
-
 
 
 if __name__ == "__main__":
