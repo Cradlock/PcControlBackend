@@ -18,7 +18,7 @@ session : Session
 
 app.add_middleware(
    CORSMiddleware,
-   allow_origins=["*"],
+   allow_origins=["http://localhost:3000","https://it-log-9ukw.vercel.app/"],
    allow_credentials=True,
    allow_methods=["*"],
    allow_headers=["*"]
@@ -63,6 +63,7 @@ async def chat_pces(websocket: WebSocket):
 
 @app.get("/list_connected_pc")
 async def connected_pc(session_id : str = Cookie(None)):
+
    if sessions.get(session_id) is None:
       return JSONResponse(content="Error",status_code=403)
    
@@ -84,7 +85,8 @@ async def login(res : Response,post_data : user_data,session: Session = Depends(
    sessions[token] = user.id
    res.set_cookie(key="token",value=token)
    return JSONResponse(content={
-      "username":user.username
+      "username":user.username,
+      "token":token
    },status_code=200)
 
 
