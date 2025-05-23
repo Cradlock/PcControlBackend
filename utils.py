@@ -8,7 +8,7 @@ def shift_string(s):
 
 
 def generate_key():
-    return uuid.uuid4()
+    return str(uuid.uuid4())
 
 
 def hashed(st : str):

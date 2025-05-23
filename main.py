@@ -86,7 +86,7 @@ async def login(res : Response,post_data : user_data,session: Session = Depends(
    res.set_cookie(key="token",value=token)
    return JSONResponse(content={
       "username":user.username,
-      "token":str(token)
+      "token":token
    },status_code=200)
 
 
@@ -126,8 +126,6 @@ async def logout(res : Response,session_id : str = Cookie(None)):
        del sessions[session_id]
     else:
        return {"data":"You aren't authentication "}
-
-
 
 
 @app.post("/sendCommand")
