@@ -1,8 +1,22 @@
 from fastapi import FastAPI,WebSocket,WebSocketDisconnect,Depends
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse,HTMLResponse
 import init
 
 app = FastAPI()
+
+origins = [
+    "http://localhost:3000",  # локальный фронт
+    "https://it-log-9ukw.vercel.app/"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  # список разрешённых источников
+    allow_credentials=True,  # можно передавать куки
+    allow_methods=["*"],  # разрешить все методы: GET, POST и т.п.
+    allow_headers=["*"], 
+)
 
 connected_pc = dict()
 
