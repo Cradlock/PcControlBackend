@@ -1,188 +1,80 @@
-from fastapi import FastAPI,WebSocket,WebSocketDisconnect,Response,Cookie,Form,File,UploadFile,Depends
+from fastapi import FastAPI,WebSocket,WebSocketDisconnect,Depends
 from fastapi.responses import JSONResponse,HTMLResponse
-from fastapi.middleware.cors import CORSMiddleware
-from typing import List
-import settings
-import json
-import base64
-from db import *
-from utils import *
-from schemas import *
-import psycopg2
-
-
+import init
 
 app = FastAPI()
 
-session : Session 
+connected_pc = dict()
 
-app.add_middleware(
-   CORSMiddleware,
-   allow_origins=["http://localhost:3000","https://it-log-9ukw.vercel.app/"],
-   allow_credentials=True,
-   allow_methods=["*"],
-   allow_headers=["*"]
-)
+@app.websocket("/openC")
+async def open_chat(websocket : WebSocket):
+    await websocket.accept()
+    try:
+        while True:
+            data = await websocket.receive_json()
+            name = data.get("name",None)
+            if name:
+                connected_pc[name] = websocket
+                print(name)
+                await websocket.send_text("OK")
 
-# pc-Name    -    WebSocket 
-connected_pc = {}
-# session_id   -   user_id
-sessions = {}
+    except WebSocketDisconnect:
+        print("Client disconnect")
 
-Secret_key = "SKY"
+
+
 
 
 @app.get("/")
-def main():
-   text = ""
-   with open("index.html","r") as f:
-      text = f.read()
-   return HTMLResponse(content=text,status_code=200)
+async def root():
+    text = ""
+    with open("index.html","r") as f:
+        text = f.read()
+    return HTMLResponse(text)
 
 
-@app.websocket("/openC")
-async def chat_pces(websocket: WebSocket):
-    await websocket.accept()
-    try:
-     while True:
-        message = await websocket.receive_text()
-        data = json.loads(message)
-
-        pc_name = data["name"]
-        key = data["key"]
-        if key == settings.shift_string(pc_name):
-            print(f'Connected {pc_name}   ---key {key}')
-            await websocket.send_text("OK")
-            connected_pc[pc_name] = websocket
-            print(connected_pc)
-        else:
-            await websocket.close()
-    except WebSocketDisconnect:
-       print("Client disconnect")
 
 
-@app.get("/list_connected_pc")
-async def connected_pc(session_id : str = Cookie(None)):
-
-   if sessions.get(session_id) is None:
-      return JSONResponse(content={"data":"error","list":json.dumps(sessions)},status_code=403)
-   
-   return JSONResponse(content={"connected_pc":list(connected_pc.keys())})
-
-
-@app.post("/login")
-async def login(res : Response,post_data : user_data,session: Session = Depends(get_session)):
-   username = post_data.username
-   password = post_data.password
-
-   user = User.getUser(session=session,username=username,password=password )
-   if user == 404:
-      return JSONResponse(content={"data":"User not found"},status_code=404)
-   if user == 403:
-      return JSONResponse(content={"data":"Incorrect password"},status_code=403)
-   
-   token = generate_key()
-   sessions[token] = user.id
-   res.set_cookie(key="token",value=token)
-   return JSONResponse(content={
-      "username":user.username,
-      "token":token
-   },status_code=200)
-
-
-@app.post("/register")
-async def register(res : Response,data : RegisterData,session: Session = Depends(get_session)):
-   username = data.username
-   password = data.password
-   secret_key = data.secret_key
-
-   if secret_key != Secret_key:
-      return JSONResponse(content={"msg":"Incorrect word (idi nahyui chmo blyat) "},status_code=403)
-   
-   token = generate_key()
-
-   user_old = session.query(User).filter(User.username==username).first()
-   if user_old is not None:
-      return JSONResponse(content={"msg":"This user has in db"},status_code=409)
-
-
-   try:
-      user = User(username=username,password=hashed(password))
-      session.add(user)
-      session.commit()
-   except Exception as e:
-      print(e)
-      return JSONResponse(content={"msg":"Error in db"},status_code=500)
-   
-   
-   sessions[token] = user.id
-
-   return JSONResponse(content={"username":user.username,"session":token},status_code=200)
-
-   
-@app.post("/logout")
-async def logout(res : Response,session_id : str = Cookie(None)):
-    if session_id:
-       del sessions[session_id]
-    else:
-       return {"data":"You aren't authentication "}
+@app.get("/clients")
+async def getClients():
+    return JSONResponse({"pc_names": list(connected_pc.keys()) })
 
 
 @app.post("/sendCommand")
-async def sendCommand(session_id : str = Cookie(None),command : str = Form(...),list_pc : List[str] = Form(...)):
-   if sessions.get(session_id) is None:
-      return JSONResponse(content={},status_code=403)
-   success = []
-   failed = []
-   
-   for name,wbsock in connected_pc.items():
-      if name in list_pc:
-         try:
-             await wbsock.send_json({"type":"command","text":command})
-             success.append(name)
-         except Exception as e:
-            print(f"error {e}")
-            failed.append(name)
-
-   return JSONResponse(content={
-      "success":success,
-      "failed":failed
-   },status_code=200)
-
-
-@app.post("/sendFile")
-async def sendFile(session_id : str = Cookie(None),file : UploadFile = File(...),list_pc : List[str] = Form(...)):
-   if sessions.get(session_id) is None:
-      return JSONResponse(content={},status_code=403)
-   
-   content = await file.read()
-   success = []
-   failed = []
-   for name,wbsock in connected_pc.items():
-      if name in list_pc:
-         try:
-             await wbsock.send_json({"type":"file",
-                                     "filename":file.filename,
-                                     "data":  base64.b64encode(content).decode('utf-8') })
-             success.append(name)
-         except Exception as e:
-            print(f"error {e}")
-            failed.append(name)
-
-   return JSONResponse(content={
-      "success":success,
-      "failed":failed
-   },status_code=200)
+async def sendCommand(data : init.DataCommand,isAuth : bool = Depends(init.verify_token)):
+    if isAuth:
+        try:
+           success = []
+           failed = []
+           for name,ws in connected_pc.items():
+              if name in data.recepients:
+                try:
+                    await ws.send_json(
+                      {
+                        "type":"command",
+                        "text":data.command
+                     }
+                    )
+                    success.append(name)
+                except Exception:
+                    failed.append(name)
+        
+           return {"success":success,"failed":failed}
+        except Exception as e:
+           print(e) 
+           return JSONResponse({"msg":"Internal server error"},status_code=500)
+    else:
+        return JSONResponse({"error":"Not authorizited"},status_code=401)
 
 
-if __name__ == "__main__":
-    try:
-         session = next(get_session())
-         session.execute(text("SELECT 1"))
-         print(session)
-         if session is None:
-           print("ERROR with db")
-         else:
-           print("DB Connected ")
-    except Exception as e:
-       print(f"Error {e}")
+@app.post("sendFile/")
+async def sendFile(isAuth : bool = Depends(init.verify_token)):
+    pass    
+
+
+
+
+
+
+
+
