@@ -63,7 +63,7 @@ async def getClients(isAuth : bool = Depends(init.verify_token)):
 
 @app.post("/sendCommand")
 async def sendCommand(data : init.DataCommand,isAuth : bool = Depends(init.verify_token)):
-    if isAuth:
+    # if isAuth:
         try:
            success = []
            failed = []
@@ -84,8 +84,8 @@ async def sendCommand(data : init.DataCommand,isAuth : bool = Depends(init.verif
         except Exception as e:
            print(e) 
            return JSONResponse({"msg":"Internal server error"},status_code=500)
-    else:
-        return JSONResponse({"error":"Not authorizited"},status_code=401)
+    # else:
+        # return JSONResponse({"error":"Not authorizited"},status_code=401)
 
 
 @app.post("sendFile/")
