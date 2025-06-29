@@ -4,8 +4,8 @@ from typing import List
 from pydantic import BaseModel
 from dotenv import load_dotenv
 import os
-AUTH_KEY : str 
-API_HOST : str  
+AUTH_KEY : str = "" 
+API_HOST : str = ""
 
 
 class DataCommand(BaseModel):

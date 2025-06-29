@@ -23,6 +23,7 @@ connected_pc = dict()
 @app.websocket("/openC")
 async def open_chat(websocket : WebSocket):
     await websocket.accept()
+    name = None
     try:
         while True:
             data = await websocket.receive_json()
@@ -33,7 +34,11 @@ async def open_chat(websocket : WebSocket):
                 await websocket.send_text("OK")
 
     except WebSocketDisconnect:
+        
         print("Client disconnect")
+        if name and name in connected_pc:
+            connected_pc.pop(name)
+            print(f"{name}  -  removed in connected")
 
 
 
@@ -50,7 +55,9 @@ async def root():
 
 
 @app.get("/clients")
-async def getClients():
+async def getClients(isAuth : bool = Depends(init.verify_token)):
+    # if not isAuth:
+        # return JSONResponse({"error":"Unathorizated"},status_code=401)
     return JSONResponse({"pc_names": list(connected_pc.keys()) })
 
 
